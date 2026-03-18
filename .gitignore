@@ -1,0 +1,7 @@
+# ignore VSCode project data
+.vscode/
+
+# Ignore all temporary editor files
+*.swp
+*.iml
+.idea
