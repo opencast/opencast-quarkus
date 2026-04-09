@@ -15,6 +15,14 @@
 
   <modules>
     <module>modules/parent</module>
+    <module>modules/common-service-api</module>
+    <module>modules/common-service-impl</module>
+    <module>modules/admin-specific-service-api</module>
+    <module>modules/admin-specific-service-impl</module>
+    <module>modules/presentation-specific-service-api</module>
+    <module>modules/presentation-specific-service-impl</module>
+    <module>modules/worker-specific-service-api</module>
+    <module>modules/worker-specific-service-impl</module>
   </modules>
 
   <profiles>

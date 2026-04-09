@@ -15,6 +15,17 @@
   </parent>
 
   <dependencies>
+    <!-- Dependent API projects are imported automatically -->
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>quarkus-project-structure-common-service-impl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>quarkus-project-structure-admin-specific-service-impl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>
