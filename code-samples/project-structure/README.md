@@ -1,10 +1,10 @@
 This small project should demonstrate the project structure and Opencast specifics like multi-projects, multiple modules with endpoint definitions, multiple distributions…
 
-I've decided to split parent pom into two pom projects. In the base pom, placed in the root directory, we can define project specific metadata like license, description, URL to the project, issue tracker, documentation, developers and other non-technical metadata. But also the modules and profiles (see below) should be defined there. The second pom, lets call it parent pom, should define all the technical things like which versions should be used for the dependencies and build configuration. In the regular modules we can set the parent project as pom parent and are able to define dependencies without version information or other dependency specific configuration because this is done in the parent.
+I've decided to split the parent POM into two POM projects. The base POM, located in the root directory, should contain project-specific metadata such as the license, description, URL to the project, issue tracker, documentation, developers, and other non-technical metadata. The modules and profiles (see below) should also be defined there. The second POM, which we'll call the parent POM, should define technical aspects such as which versions to use for dependencies and the build configuration. In the regular modules, we can set the parent project as POM parent and define dependencies without version information or other dependency-specific configurations because these are defined in the parent.
 
-Maven universe renamed modules to subprojects, as the name module conflicts with the Java world modules. Let's adopt this change and call maven modules subprojects from now on.
+The Maven universe renamed "modules" to "subprojects" because the term "module" conflicts with Java's use of the term. Let's adopt this change and refer to Maven modules as subprojects from now on.
 
-The project structure should look like this
+The project structure should look like this:
 
 ```text
 [root directory]
@@ -28,13 +28,13 @@ The project structure should look like this
     :
 ```
 
-The output of the Opencast build is not only a compiled project but multiple assemblies. These assemblies are specific distributions of Opencast for specific use cases. Admin assembly is intended to manage the whole Opencast cluster but also host user and system facing services like Admin UI, Assetmanager, Jobdispatcher,…. The Worker assembly is designed for handling (video) processing jobs, that probably produces heavy load. We want to keep this and achieve same semantic with Quarkus as well.
+The Opencast build produces not only a compiled project, but also multiple assemblies. These assemblies are specific Opencast distributions for particular use cases. The Admin assembly manages the entire Opencast cluster and hosts user- and system-facing services, such as the Admin UI, AssetManager, and JobDispatcher. The Worker assembly is designed to handle processing jobs that probably produce a heavy load. We want to maintain this functionality and achieve the same semantics with Quarkus.
 
-The name assemblies is Karaf specific. I would like to call this distribution. At the end we will create Admin distribution, Worker distribution,…
+The name "assemblies" is specific to Karaf. I would like to call this a "distribution." In the end, we will create an Admin distribution, a Worker distribution, and so on.
 
-We need a way to define Opencast distributions. But what is a distribution from technical point of view? In first place this is a definition which modules should run on the server at runtime. In second place the service configuration may differ between distributions. In Karaf we made thees definitions in Karaf assemblies. We can replace it with Maven subprojects for each distribution where we define the needed modules/subprojects and update/overwrite specific configurations. In addition to that we can select which distribution should be built with maven profiles. Without giving a profile during build, the default profile should be selected, like it does currently with Karaf.
+We need a way to define Opencast distributions. But what is a distribution from a technical point of view? First, it is a definition of which modules should run on the server at runtime. Second, the service configuration may differ between distributions. In Karaf, we created these definitions in Karaf assemblies. We can replace these with Maven subprojects for each distribution, in which we define the necessary modules and subprojects, as well as update or overwrite specific configurations. Additionally, we can select which distribution to build with Maven profiles. If no profile is given during the build, the default profile will be selected, as it currently does with Karaf.
 
-Lets extend our project structure for distribution definitions
+Let's expand our project structure to include distribution definitions.
 
 ```text
 [root directory]
@@ -70,10 +70,10 @@ Lets extend our project structure for distribution definitions
     :
 ```
 
-This repository demonstrates the project structure with some subprojects. They are named for intended use cases like common-service-api is a project defining common services, the -impl suffixed projects are implementations of the services defined in api projects. Distribution specific services and implementation are also there for demonstration reasons. What the services are doing is not relevant for the demonstration, but they define web endpoints named for the use cases.
+This repository demonstrates the project structure and includes some subprojects. The projects are named according to their intended use cases. For example, the "common-service-api" project defines common services, and the projects with the "-impl" suffix are implementations of the services defined in the "api" projects. There are also distribution-specific services and implementations for demonstration purposes. The functionality of the services is not relevant for the demonstration, but they define web endpoints named for their use cases.
 
-To build the whole project, run `mvn clean install`. This command will call `mvn quarkus:build` internally. Without giving any profile, Maven will build the default one. In this case it is `allinone`. The built project is located under `distributions/<profile name>/target/quarkus-app/`. How to run the build is described below. To build a different distribution you can select it by giving a profile name(s) to the Maven command. The command `mvn clean install -P admin,worker` will build the admin and worker distribution.
+To build the entire project, run the command `mvn clean install`. This command calls the `mvn quarkus:build` command internally. If no profile is given, Maven will build the default one. In this case, the profile is named "allinone." The built project is located under `distributions/<profile name>/target/quarkus-app/`. The process for running the build is described below. To build a different distribution, select it by providing a profile name to the Maven command. For example, the command `mvn clean install -P admin,worker` will build the admin and worker distributions.
 
-To run the project after it was built, change to the distribution build directory `distributions/<profile name>/target/quarkus-app/` and run `java -jar quarkus-run.jar`. You can pass Quarkus specific configuration as Environment variables like `QUARKUS_HTTP_PORT=9000 java -jar quarkus-run.jar` or creating a configuration file (more on that later). All known Quarkus configurations are documented [here](https://quarkus.io/guides/all-config).
+After building the project, change to the distribution build directory (`distributions/<profile name>/target/quarkus-app/`), then run the command: `java -jar quarkus-run.jar`. You can pass Quarkus-specific configurations as environment variables, such as `QUARKUS_HTTP_PORT=9000 java -jar quarkus-run.jar`, or by creating a configuration file (more on that later). All known Quarkus configurations are documented [here](https://quarkus.io/guides/all-config).
 
-During development, you may want to benefit from the Quarkus dev mode. In dev mode you will get a useful Quarkus developer web app. But also hot-loading of Java code and configuration save you a lot of time. To run Quarkus dev mode build and run the project with `mvn quarkus:dev`. Maven profiles are supported here too.
+During development, you may want to take advantage of Quarkus's dev mode. In dev mode, you will receive a useful Quarkus developer web app. Hot-loading Java code and configurations will also save you a lot of time. To run Quarkus dev mode, build and run the project with `mvn quarkus:dev`. Maven profiles are also supported.
