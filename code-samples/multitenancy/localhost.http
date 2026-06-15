@@ -1,0 +1,37 @@
+### GET current tenant
+GET http://localhost:8080/api/tenant_users/tenant
+X-Tenant: tenant1
+
+### List Users
+GET http://localhost:8080/api/tenant_users
+X-Tenant: tenant1
+
+### GET Admin resource tenant 1
+GET http://localhost:8080/api/admin
+X-Tenant: tenant1
+Authorization: Basic dGVuYW50MV9hZG1pbjpwYXNzd29yZA==
+
+### GET User resource tenant 1
+GET http://localhost:8080/api/users/me
+X-Tenant: tenant1
+Authorization: Basic dGVuYW50MV91c2VyOnBhc3N3b3Jk
+
+### GET Admin resource tenant 2
+GET http://localhost:8080/api/admin
+X-Tenant: tenant2
+Authorization: Basic dGVuYW50Ml9hZG1pbjpwYXNzd29yZA==
+
+### GET User resource tenant 2
+GET http://localhost:8080/api/users/me
+X-Tenant: tenant2
+Authorization: Basic dGVuYW50Ml91c2VyOnBhc3N3b3Jk
+
+### GET Admin resource wrong tenant
+GET http://localhost:8080/api/admin
+X-Tenant: tenant2
+Authorization: Basic dGVuYW50MV9hZG1pbjpwYXNzd29yZA==
+
+### GET User resource wrong tenant
+GET http://localhost:8080/api/users/me
+X-Tenant: tenant2
+Authorization: Basic dGVuYW50MV91c2VyOnBhc3N3b3Jk
