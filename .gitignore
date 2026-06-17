@@ -2,6 +2,7 @@
 .vscode/
 *.iml
 .idea
+.quarkus
 
 # Ignore all temporary editor files
 *.swp
