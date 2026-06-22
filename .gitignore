@@ -1,9 +1,11 @@
-# ignore VSCode project data
+# ignore tool data
 .vscode/
+*.iml
+.idea
+.quarkus
 
 # Ignore all temporary editor files
 *.swp
-*.iml
-.idea
 
+# Ignore build artifacts
 target
