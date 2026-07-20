@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 for archetypeproject in *-archetype; do
   pushd "$archetypeproject"
