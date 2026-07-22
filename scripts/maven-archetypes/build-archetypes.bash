@@ -1,7 +1,9 @@
-#!/bin/env bash
+#!/usr/bin/env bash
+
+cd "$(dirname "${BASH_SOURCE[0]}")" || exit
 
 for archetypeproject in *-archetype; do
-  pushd "$archetypeproject"
+  pushd "$archetypeproject" || exit
   mvn clean install
-  popd
+  popd || exit
 done
