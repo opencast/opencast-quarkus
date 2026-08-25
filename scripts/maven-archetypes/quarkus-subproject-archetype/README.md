@@ -21,7 +21,7 @@ mvn archetype:generate                                   \
   -Dversion=1.0-SNAPSHOT
 ```
 
-Yo may want to rename the created subproject directory.
+You may want to rename the created subproject directory.
 
 To include it in the build,
 it also should be linked as subproject in the main project `pom.xml`,
