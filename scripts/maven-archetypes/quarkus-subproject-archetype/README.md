@@ -22,4 +22,8 @@ mvn archetype:generate                                   \
 ```
 
 Yo may want to rename the created subproject directory.
-It also should be linked as subproject in the main project pom.xml.
+
+To include it in the build,
+it also should be linked as subproject in the main project `pom.xml`,
+but to actually include the module in the app,
+you still need to wire it in as a dependency of `modules/runner/pom.xml`.
