@@ -18,6 +18,7 @@
     <maven.compiler-plugin.version>3.15.0</maven.compiler-plugin.version>
     <maven.jandex-plugin.version>3.5.3</maven.jandex-plugin.version>
     <maven.surefire-plugin.version>3.5.5</maven.surefire-plugin.version>
+    <jacoco.version>0.8.15</jacoco.version>
     <htmlunit.version>4.7.0</htmlunit.version>
   </properties>
 
@@ -93,6 +94,19 @@
               <id>make-index</id>
               <goals>
                 <goal>jandex</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco.version}</version>
+          <executions>
+            <execution>
+              <id>prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
               </goals>
             </execution>
           </executions>
