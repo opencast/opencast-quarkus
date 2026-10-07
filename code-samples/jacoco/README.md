@@ -1,6 +1,6 @@
 # JaCoCo Integration Example
 
-This project demonstrates JaCoCo (Java Code Coverage) integration\
+This project demonstrates JaCoCo (Java Code Coverage) integration
 with a Maven multi-module Quarkus project.
 
 The project was generated using the `quarkus-project-archetype` from this repository,
@@ -16,12 +16,14 @@ See `modules/hello/pom.xml` for the plugin configuration.
 Run the build (which executes tests with the JaCoCo agent):
 
 ```sh
-mvn clean verify
+mvn verify
 ```
 
-**Note**: The `clean` step is sometimes necessary to remove old coverage data!
+Every build starts with fresh coverage data.
+To keep the data of earlier builds, e.g. to combine separate test runs,
+pass `-Dcoverage.reset.skip=true`.
 
-Then generate the report:
+After that, you generate the report:
 
 ```sh
 mvn -pl modules/hello jacoco:report
@@ -40,7 +42,7 @@ as opposed to unit-tests, run by `surefire-plugin`.
 What this essentially does is specify a different target file for the coverage data.
 This makes report generation and coverage requirements like the one mentioned above more complicated,
 which is why we opted out of this approach.
-The way Quarkus runs tests, `prepare-agent` is enough to cover both unit and integration tests,
+The way Quarkus runs tests, `prepare-agent` is enough to cover both unit and integration tests.
 
-Getting coverage data from `QuarkusIntegrationTest`-s with JaCoCo **doesn't work at all**,
+Getting coverage data from `QuarkusIntegrationTest`-s is **not** covered by this setup,
 since those run in a completely different process, which might not even be a JVM.
