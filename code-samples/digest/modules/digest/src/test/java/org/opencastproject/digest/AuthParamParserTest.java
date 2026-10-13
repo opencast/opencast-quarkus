@@ -3,6 +3,7 @@ package org.opencastproject.digest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -10,6 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -17,13 +19,21 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthParamParserTest {
+    private static final String SCHEME = "Digest";
+
+    private static AuthParamResult.Match parsed(String input) {
+        return assertInstanceOf(AuthParamResult.Match.class, AuthParamParser.parseAs(input, SCHEME));
+    }
+
+    private static void assertMalformed(String input) {
+        assertInstanceOf(AuthParamResult.Malformed.class, AuthParamParser.parseAs(input, SCHEME));
+    }
 
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = {" ", "\t", "  ", " \t"})
-    void blankHeader(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+    void blankHeaderHasNoScheme(String input) {
+        assertEquals(new AuthParamResult.NoMatch(), AuthParamParser.parseAs(input, SCHEME));
     }
 
     // # schema
@@ -37,8 +47,7 @@ class AuthParamParserTest {
             "!#$%&'*+-"
     })
     void scheme(String input) throws Exception {
-        var p = AuthParamParser.parse(input);
-        assertEquals(input, p.scheme());
+        var p = assertInstanceOf(AuthParamResult.Match.class, AuthParamParser.parseAs(input, input));
         assertTrue(p.params().isEmpty());
     }
 
@@ -48,32 +57,45 @@ class AuthParamParserTest {
             "Digest  "
     })
     void trailingSpaceStrippedFromScheme(String input) throws Exception {
-        var p = AuthParamParser.parse(input);
-        assertEquals("Digest", p.scheme());
+        var p = parsed(input);
         assertTrue(p.params().isEmpty());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
             " Digest",
-            "\tDigest",
+            "\tDigest"
+    })
+    void leadingWhitespaceMeansNoScheme(String input) {
+        assertEquals(new AuthParamResult.NoMatch(), AuthParamParser.parseAs(input, SCHEME));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
             "Digest\t",
             "Digest \t"
     })
-    void illegalWhitespaceAroundScheme(String input) throws Exception {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+    void illegalWhitespaceAfterScheme(String input) {
+        assertMalformed(input);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
             "(Digest",
-            "Di@gest",
-            "Digest\\"
+            "qop=auth",
+            "\"Digest\" x"
     })
-    void nonTokenCharInScheme(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+    void headerNotStartingWithATokenHasNoScheme(String input) {
+        assertEquals(new AuthParamResult.NoMatch(), AuthParamParser.parseAs(input, SCHEME));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "Di@gest, Di",
+            "Digest\\, Digest"
+    })
+    void nonTokenCharAfterScheme(String input, String scheme) {
+        assertInstanceOf(AuthParamResult.Malformed.class, AuthParamParser.parseAs(input, scheme));
     }
 
     // # parameters
@@ -89,7 +111,7 @@ class AuthParamParserTest {
             "Digest QoP=auth"
     })
     void singleTokenParam(String input) throws Exception {
-        var p = AuthParamParser.parse(input);
+        var p = parsed(input);
         assertEquals("auth", p.params().get("qop"));
         assertEquals(1, p.params().size());
     }
@@ -102,16 +124,7 @@ class AuthParamParserTest {
             "Digest qop=auth  "
     })
     void invalidSpaces(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
-    }
-
-    // ## relation to schema
-
-    @Test
-    void noScheme() {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse("qop=auth"));
+        assertMalformed(input);
     }
 
     // ## token params
@@ -119,7 +132,7 @@ class AuthParamParserTest {
     @ParameterizedTest
     @ValueSource(strings = {"qop.v2", "!#$%&'*+-.^_`|~"})
     void keyContainsTokenChars(String input) throws Exception {
-        var p = AuthParamParser.parse(
+        var p = parsed(
                 "Digest " + input + "=token");
         assertEquals("token", p.params().get(input));
         assertEquals(1, p.params().size());
@@ -128,7 +141,7 @@ class AuthParamParserTest {
     @ParameterizedTest
     @ValueSource(strings = {"user_1", "!#$%&'*+-.^_`|~"})
     void valueContainsTokenChars(String input) throws Exception {
-        var p = AuthParamParser.parse(
+        var p = parsed(
                 "Digest username=" + input);
         assertEquals(input, p.params().get("username"));
         assertEquals(1, p.params().size());
@@ -144,8 +157,7 @@ class AuthParamParserTest {
             "Digest key=value)",
     })
     void nonTokenInParam(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
     }
 
     @ParameterizedTest
@@ -161,8 +173,7 @@ class AuthParamParserTest {
             "Digest realm=qup=auth"
     })
     void unbalancedParam(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
     }
 
     // ## quoted params
@@ -177,7 +188,7 @@ class AuthParamParserTest {
             "bar\u0080"
     })
     void singleQuotedParam(String value) throws Exception {
-        var p = AuthParamParser.parse("Digest username=\"" + value + "\"");
+        var p = parsed("Digest username=\"" + value + "\"");
         assertEquals(value, p.params().get("username"));
         assertEquals(1, p.params().size());
     }
@@ -193,14 +204,13 @@ class AuthParamParserTest {
             "Digest realm=us\"er\"rest",
     })
     void invalidQuotes(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
     }
 
     @ParameterizedTest
     @MethodSource("escapeCases")
     void escaping(String quotedValue, String expected) throws Exception {
-        var p = AuthParamParser.parse("Digest realm=\"" + quotedValue + "\"");
+        var p = parsed("Digest realm=\"" + quotedValue + "\"");
         assertEquals(expected, p.params().get("realm"));
         assertEquals(1, p.params().size());
     }
@@ -224,8 +234,7 @@ class AuthParamParserTest {
             "Digest realm=\"\\\u0000\""
     })
     void invalidCharsInQuotedParam(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
     }
 
     // ## multiple parameters
@@ -244,7 +253,7 @@ class AuthParamParserTest {
             "Digest username=\"user\", qop=auth, ",
     })
     void multipleParams(String input) throws Exception {
-        var p = AuthParamParser.parse(input);
+        var p = parsed(input);
         assertEquals("user", p.params().get("username"));
         assertEquals("auth", p.params().get("qop"));
         assertEquals(2, p.params().size());
@@ -258,7 +267,7 @@ class AuthParamParserTest {
             "Digest , , ",
     })
     void degenerateCommas(String input) throws Exception {
-        var p = AuthParamParser.parse(input);
+        var p = parsed(input);
         assertTrue(p.params().isEmpty());
     }
 
@@ -273,8 +282,7 @@ class AuthParamParserTest {
             "Digest qop=auth, realm=first, realm=second, qop=auth-int"
     })
     void duplicateKeysRejected(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
     }
 
     @ParameterizedTest
@@ -291,8 +299,29 @@ class AuthParamParserTest {
             "Digest realm=example =auth"
     })
     void missingParts(String input) {
-        assertThrows(AuthParamParseException.class,
-                () -> AuthParamParser.parse(input));
+        assertMalformed(input);
+    }
+
+    // ## parsing as a given scheme
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Digest a=b", "digest a=b", "DIGEST a=b"})
+    void schemeIsComparedCaseInsensitively(String input) {
+        assertEquals(
+                new AuthParamResult.Match(Map.of("a", "b")),
+                AuthParamParser.parseAs(input, SCHEME));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Basic dXNlcjpwYXNz", "Bearer abc.def==", "DigestFoo a=b", "Digest-ish a=b", "Dige"})
+    void otherSchemesAreIgnoredWithoutLookingAtTheRest(String input) {
+        assertEquals(new AuthParamResult.NoMatch(), AuthParamParser.parseAs(input, SCHEME));
+    }
+
+    @Test
+    void malformedParamsReportWhatIsWrong() {
+        var outcome = assertInstanceOf(AuthParamResult.Malformed.class, AuthParamParser.parseAs("Digest a=b, a=c", SCHEME));
+        assertTrue(outcome.reason().contains("duplicate parameter 'a'"));
     }
 
     // ## assert precondition checks

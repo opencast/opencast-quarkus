@@ -16,34 +16,56 @@ public final class AuthParamParser {
 
     private final String s;
     private int pos;
-    private final String scheme;
-    private final Map<String, String> params = new HashMap<>();
 
     /**
-     * Parses an HTTP Authorization header value
-     * into its scheme and parameters.
+     * Parses an HTTP Authorization header value into its scheme and parameters,
+     * but only if it uses the given scheme (compared case-insensitively).
      * Parameter names are stored in lowercase.
      * Duplicate parameters are rejected.
+     * What follows the scheme depends on the scheme, so the rest of the header is not even looked at
+     * if the scheme is not the wanted one.
+     * <p>
+     * The parser throws {@link AuthParamParseException}s internally to bail out of its recursive descent,
+     * which this method turns into an {@link AuthParamResult} at the boundary.
      *
      * @see <a href="https://www.rfc-editor.org/rfc/rfc9110#section-11.4">RFC 9110 §11.4 — Authorization</a>
      */
-    public static AuthParamResult parse(String header) throws AuthParamParseException {
-        AuthParamParser authParamParser = new AuthParamParser(header);
-        return new AuthParamResult(authParamParser.scheme, authParamParser.params);
+    public static AuthParamResult parseAs(String header, String scheme) {
+        AuthParamParser parser = new AuthParamParser(header);
+
+        String actualScheme;
+        try {
+            actualScheme = parser.parseScheme();
+        } catch (AuthParamParseException e) {
+            return new AuthParamResult.NoMatch();
+        }
+        if (!scheme.equalsIgnoreCase(actualScheme)) {
+            return new AuthParamResult.NoMatch();
+        }
+
+        try {
+            return new AuthParamResult.Match(parser.parseParamList());
+        } catch (AuthParamParseException e) {
+            return new AuthParamResult.Malformed(e.getMessage());
+        }
+    }
+
+    private AuthParamParser(String s) {
+        this.s = s;
     }
 
     /**
-     * Partially implements the {@code credentials} production
+     * Parses the {@code auth-scheme} at the start of the {@code credentials} production
      * from RFC 9110 §11.4:
      * <pre>
      * credentials = auth-scheme [ 1*SP [ [ auth-param ] *( OWS "," OWS [ auth-param ] ) ]
      * </pre>
+     * The rest is handled by {@link #parseParamList()}, which has to follow right after.
+     * Only the {@code auth-param} form is implemented, not {@code token68}.
      *
      * @see <a href="https://www.rfc-editor.org/rfc/rfc9110#section-11.4">RFC 9110 §11.4 — Authorization</a>
      */
-    private AuthParamParser(String s) throws AuthParamParseException {
-        this.s = s;
-
+    private String parseScheme() throws AuthParamParseException {
         if (s == null) {
             throw new AuthParamParseException("header must not be null");
         }
@@ -51,18 +73,24 @@ public final class AuthParamParser {
             throw new AuthParamParseException("expected token at position 0");
         }
 
-        scheme = parseToken();
+        return parseToken();
+    }
+
+    private Map<String, String> parseParamList() throws AuthParamParseException {
+        Map<String, String> params = new HashMap<>();
         if (pos >= s.length()) {
-            return;
+            return params;
         }
         expect(' ');
         skipSP();
         if (pos >= s.length()) {
-            return;
+            return params;
         }
 
         if (isTokenChar()) {
-            parseParam();
+            // No duplicate is possible for the first parameter.
+            Map.Entry<String, String> param = parseParam();
+            params.put(param.getKey(), param.getValue());
         }
 
         while (pos < s.length()) {
@@ -71,13 +99,18 @@ public final class AuthParamParser {
             skipOWS();
 
             if (pos >= s.length()) {
-                return;
+                return params;
             }
 
             if (isTokenChar()) {
-                parseParam();
+                int start = pos;
+                Map.Entry<String, String> param = parseParam();
+                if (params.putIfAbsent(param.getKey(), param.getValue()) != null) {
+                    throw new AuthParamParseException("duplicate parameter '" + param.getKey() + "' at position " + start);
+                }
             }
         }
+        return params;
     }
 
     /**
@@ -126,13 +159,8 @@ public final class AuthParamParser {
      *
      * @see <a href="https://www.rfc-editor.org/rfc/rfc9110#section-11.4.2">RFC 9110 §11.4.2 — Authentication Parameter</a>
      */
-    private void parseParam() throws AuthParamParseException {
-        int keyStart = pos;
+    private Map.Entry<String, String> parseParam() throws AuthParamParseException {
         String key = parseToken().toLowerCase(Locale.ROOT);
-
-        if (params.containsKey(key)) {
-            throw new AuthParamParseException("duplicate parameter '" + key + "' at position " + keyStart);
-        }
 
         skipOWS();
         expect('=');
@@ -150,7 +178,7 @@ public final class AuthParamParser {
             throw new AuthParamParseException("expected token or quoted string at position " + pos);
         }
 
-        params.put(key, value);
+        return Map.entry(key, value);
     }
 
     /**

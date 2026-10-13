@@ -12,5 +12,6 @@
     <module>modules/parent</module>
     <module>modules/runner</module>
     <module>modules/digest</module>
+    <module>modules/greeting</module>
   </modules>
 </project>
