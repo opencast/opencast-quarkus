@@ -23,7 +23,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>remote-capitalization-impl</artifactId>
+            <artifactId>remote-capitalization-remote</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

@@ -19,6 +19,7 @@
         <module>modules/greeting</module>
         <module>modules/capitalization-api</module>
         <module>modules/capitalization-impl</module>
+        <module>modules/capitalization-remote</module>
     </modules>
 
     <profiles>
