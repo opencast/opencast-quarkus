@@ -3,8 +3,9 @@ package org.opencastproject;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class CapitalizationService {
+public class CapitalizationServiceImpl implements CapitalizationService {
 
+    @Override
     public String capitalize(String text) {
         if (text == null || text.isEmpty()) {
             return text;

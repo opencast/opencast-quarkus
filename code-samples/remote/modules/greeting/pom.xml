@@ -16,7 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>remote-capitalization</artifactId>
+            <artifactId>remote-capitalization-api</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
