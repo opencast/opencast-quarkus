@@ -16,9 +16,23 @@
 
     <modules>
         <module>modules/parent</module>
-        <module>modules/runner</module>
         <module>modules/greeting</module>
         <module>modules/capitalization-api</module>
         <module>modules/capitalization-impl</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>admin</id>
+            <modules>
+                <module>./distributions/admin</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>worker</id>
+            <modules>
+                <module>./distributions/worker</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

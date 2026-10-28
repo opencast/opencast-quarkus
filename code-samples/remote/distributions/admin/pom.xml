@@ -4,26 +4,27 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>remote-runner</artifactId>
+    <artifactId>remote-distribution-admin</artifactId>
     <packaging>quarkus</packaging>
 
     <parent>
         <groupId>org.opencastproject</groupId>
         <artifactId>remote-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../parent/pom.xml</relativePath>
+        <relativePath>../../modules/parent/pom.xml</relativePath>
     </parent>
 
     <dependencies>
+        <!-- Dependent API projects are imported automatically -->
         <dependency>
-            <groupId>org.opencastproject</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>remote-greeting</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.opencastproject</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>remote-capitalization-impl</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
@@ -32,6 +33,7 @@
             <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
+                <extensions>true</extensions>
             </plugin>
         </plugins>
     </build>
