@@ -1,0 +1,5 @@
+# generated dev PKI
+*.crt
+*.key
+*.csr
+*.srl

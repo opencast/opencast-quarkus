@@ -27,6 +27,11 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
         </dependency>
+        <!-- Enforces @Authenticated (maps the mTLS client certificate to the SecurityIdentity) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-security</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
