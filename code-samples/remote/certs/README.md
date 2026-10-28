@@ -3,8 +3,9 @@
 Both distributions serve **HTTPS with optional client certificates**
 (`quarkus.http.ssl.client-auth=request`). Browsers and other user-facing
 clients connect without a certificate; the machine-to-machine endpoints
-*require* one, enforced per endpoint with `@Authenticated` (no certificate
-→ 401). The certificate's **subject** (e.g. `CN=oc-admin`) is the machine
+*require* one, enforced per endpoint (a path permission restricted to the
+mTLS mechanism, plus `@Authenticated`) — no certificate means 401. The
+certificate's **subject** (e.g. `CN=oc-admin`) is the machine
 identity the peer authenticates — Quarkus maps it to the request's
 `SecurityIdentity` automatically.
 
