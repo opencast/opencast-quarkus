@@ -18,5 +18,6 @@
         <module>modules/parent</module>
         <module>modules/runner</module>
         <module>modules/greeting</module>
+        <module>modules/capitalization</module>
     </modules>
 </project>
